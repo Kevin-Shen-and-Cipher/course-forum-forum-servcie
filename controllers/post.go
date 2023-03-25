@@ -9,6 +9,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetPosts godoc
+//
+// @Summary Get all posts
+// @Description Get all posts
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Post
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts [get]
 func GetPosts(ctx *gin.Context) {
 	posts, err := repository.GetPosts()
 
@@ -19,6 +30,18 @@ func GetPosts(ctx *gin.Context) {
 	}
 }
 
+// CreatePost godoc
+//
+// @Summary Create post
+// @Description Create a post
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param request body models.CreatePost true "Create post request"
+// @Success 201 {object} models.Post
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts [post]
 func CreatePost(ctx *gin.Context) {
 	var input models.CreatePost
 
@@ -38,6 +61,19 @@ func CreatePost(ctx *gin.Context) {
 	}
 }
 
+// FindPost godoc
+//
+// @Summary Find post
+// @Description Find a post
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param id path uint true "Post ID"
+// @Success 200 {object} models.Post
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts/{id} [get]
 func FindPost(ctx *gin.Context) {
 	id, err := getPostId(ctx)
 
@@ -49,12 +85,26 @@ func FindPost(ctx *gin.Context) {
 	post, err := repository.FindPost(id)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
 	} else {
 		ctx.JSON(http.StatusOK, &post)
 	}
 }
 
+// UpdatePost godoc
+//
+// @Summary Update post
+// @Description Update a post
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param id path uint true "Post ID"
+// @Param request body models.UpdatePost true "Update post request"
+// @Success 200 {object} models.Post
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts/{id} [patch]
 func UpdatePost(ctx *gin.Context) {
 	id, err := getPostId(ctx)
 
@@ -74,12 +124,25 @@ func UpdatePost(ctx *gin.Context) {
 	err = repository.UpdatePost(&post)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
 	} else {
 		ctx.JSON(http.StatusOK, &post)
 	}
 }
 
+// DeletePost godoc
+//
+// @Summary Delete post
+// @Description Delete a post
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param id path uint true "Post ID"
+// @Success 204
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /posts/{id} [delete]
 func DeletePost(ctx *gin.Context) {
 	id, err := getPostId(ctx)
 
@@ -92,9 +155,9 @@ func DeletePost(ctx *gin.Context) {
 	err = repository.DeletePost(&post)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
 	} else {
-		ctx.JSON(http.StatusNoContent, nil)
+		ctx.JSON(http.StatusNoContent, gin.H{})
 	}
 }
 

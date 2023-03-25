@@ -8,7 +8,7 @@ type Post struct {
 	ID        uint      `json:"id" gorm:"primaryKey;auto_increment"`
 	Title     string    `json:"title" gorm:"type:text;not null"`
 	Content   string    `json:"content" gorm:"type:text;not null"`
-	Score     uint8     `json:"score" gorm:"size:5;not null"`
+	Score     uint8     `json:"score" gorm:"not null"`
 	Views     uint      `json:"views" gorm:"default:0;not null"`
 	State     bool      `json:"state" gorm:"default:false;not null"`
 	CreateBy  string    `json:"create_by" gorm:"type:text;not null"`

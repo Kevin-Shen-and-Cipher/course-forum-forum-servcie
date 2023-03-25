@@ -14,8 +14,10 @@ func GetPosts() (posts []models.Post, err error) {
 func FindPost(id uint) (post *models.Post, err error) {
 	err = database.DB.First(&post, id).Error
 
-	post.Views++
-	err = database.DB.Updates(&post).Error
+	if err == nil {
+		post.Views++
+		err = database.DB.Updates(&post).Error
+	}
 
 	return post, err
 }
@@ -27,7 +29,11 @@ func CreatePost(post *models.Post) (err error) {
 }
 
 func UpdatePost(post *models.Post) (err error) {
-	err = database.DB.Updates(&post).Error
+	err = database.DB.First(&models.Post{}, post.ID).Error
+
+	if err == nil {
+		err = database.DB.Updates(&post).Error
+	}
 
 	return err
 }

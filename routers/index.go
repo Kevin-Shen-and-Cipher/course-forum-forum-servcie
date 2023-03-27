@@ -22,6 +22,7 @@ func RegisterRoutes(route *gin.Engine) {
 
 	baseRoute := route.Group("/api/v1")
 	registerPostRoutes(baseRoute)
+	registerTagRoutes(baseRoute)
 }
 
 func registerSwaggerRoutes(route *gin.Engine) {
@@ -37,4 +38,14 @@ func registerPostRoutes(route *gin.RouterGroup) {
 	postRoute.POST("", controllers.CreatePost)
 	postRoute.PATCH(":id", controllers.UpdatePost)
 	postRoute.DELETE(":id", controllers.DeletePost)
+}
+
+func registerTagRoutes(route *gin.RouterGroup) {
+	tagRoute := route.Group("tags")
+
+	tagRoute.GET("", controllers.GetTags)
+	tagRoute.GET(":id", controllers.FindTag)
+	tagRoute.POST("", controllers.CreateTag)
+	tagRoute.PATCH(":id", controllers.UpdateTag)
+	tagRoute.DELETE(":id", controllers.DeleteTag)
 }

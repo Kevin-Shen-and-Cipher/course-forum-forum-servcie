@@ -8,7 +8,7 @@ import (
 
 // Migrate Add list of model add for migrations
 func Migrate() {
-	var migrationModels = []interface{}{&models.Post{}}
+	var migrationModels = []interface{}{&models.Post{}, &models.Tag{}}
 	err := database.DB.AutoMigrate(migrationModels...)
 	if err != nil {
 		logger.Errorf("Migration error: %s", err)

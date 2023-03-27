@@ -7,7 +7,14 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
+}
 
 // GetPosts godoc
 //
@@ -45,7 +52,9 @@ func GetPosts(ctx *gin.Context) {
 func CreatePost(ctx *gin.Context) {
 	var input models.CreatePost
 
-	if err := ctx.ShouldBindJSON(&input); err != nil {
+	_ = ctx.ShouldBindJSON(&input)
+
+	if err := validate.Struct(&input); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -115,12 +124,14 @@ func UpdatePost(ctx *gin.Context) {
 
 	var input models.UpdatePost
 
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "input": input})
+	_ = ctx.ShouldBindJSON(&input)
+
+	if err := validate.Struct(&input); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	post := models.Post{ID: id, State: input.State}
+	post := models.Post{ID: id, State: *input.State}
 	err = repository.UpdatePost(&post)
 
 	if err != nil {

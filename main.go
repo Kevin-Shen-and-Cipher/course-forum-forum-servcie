@@ -11,6 +11,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+// @title Course forum API
+// @version 1.0
+// @description This is the course forum api documentation
+
+// @license.name MIT License
+// @license.url https://github.com/Kevin-Shen-and-Cipher/course-forum-forum-servcie/blob/main/LICENSE
 func main() {
 
 	//set timezone

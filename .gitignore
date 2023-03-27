@@ -22,3 +22,9 @@ go.work
 
 # Environment file
 .env
+
+# VS Code extensions
+*.http
+
+# VS Code settings
+*.vscode

@@ -9,6 +9,7 @@ type Tag struct {
 	Name      string    `json:"name" gorm:"type:text;not null"`
 	CreatedAt time.Time `json:"created_at" gorm:"type:time;autoCreateTime;not null"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"type:time;autoUpdateTime;not null"`
+	Posts     []Post    `json:"-" gorm:"many2many:post_tags;constraint:OnDelete:CASCADE"`
 }
 
 type CreateTag struct {

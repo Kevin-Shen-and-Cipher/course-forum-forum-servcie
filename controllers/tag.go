@@ -46,7 +46,7 @@ func GetTags(ctx *gin.Context) {
 // @Success 201 {object} models.Tag
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /tags [tag]
+// @Router /tags [post]
 func CreateTag(ctx *gin.Context) {
 	var input models.CreateTag
 

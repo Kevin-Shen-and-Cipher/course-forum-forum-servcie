@@ -5,8 +5,12 @@ import (
 	"course-forum/models"
 )
 
-func GetTags() (tags []models.Tag, err error) {
-	err = database.DB.Find(&tags).Error
+func GetTags(conds ...interface{}) (tags []models.Tag, err error) {
+	if len(conds) == 0 {
+		err = database.DB.Find(&tags).Error
+	} else {
+		err = database.DB.Find(&tags, conds[0]).Error
+	}
 
 	return tags, err
 }

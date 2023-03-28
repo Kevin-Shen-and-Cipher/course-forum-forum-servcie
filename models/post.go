@@ -14,6 +14,7 @@ type Post struct {
 	CreateBy  string    `json:"create_by" gorm:"type:text;not null"`
 	CreatedAt time.Time `json:"created_at" gorm:"type:time;autoCreateTime;not null"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"type:time;autoUpdateTime;not null"`
+	Tags      []Tag     `json:"tags" gorm:"many2many:post_tags;constraint:OnDelete:CASCADE"`
 }
 
 type CreatePost struct {
@@ -21,6 +22,7 @@ type CreatePost struct {
 	Content  string `json:"content" validate:"required"`
 	Score    uint8  `json:"score" validate:"required,gte=0,lte=5"`
 	CreateBy string `json:"create_by" validate:"required,max=20"`
+	Tags     []uint `json:"tags"`
 }
 
 type UpdatePost struct {

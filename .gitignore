@@ -28,3 +28,7 @@ go.work
 
 # VS Code settings
 *.vscode
+
+# db file
+prod_db
+dev_db

@@ -2,10 +2,10 @@ version: "3.8"
 
 services:
   backend:
-    container_name: course_forum_backend
+    container_name: dev_course_forum_backend
     build:  
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-dev
     volumes:
       - .:/app
     ports:
@@ -18,24 +18,26 @@ services:
     links:
       - db:db
       - redis:redis
-    restart: on-failure
+    restart: always
     tty: true
 
   db:
-    container_name: course_forum_db
+    container_name: dev_course_forum_db
     image: postgres:15-alpine
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
     volumes:
-      - ./prod_db:/var/lib/postgresql/data/
+      - ./dev_db:/var/lib/postgresql/data/
     networks:
       - backend-bridge
     restart: always
 
   redis:
-    container_name: course_forum_redis
+    container_name: dev_course_forum_redis
     image: redis:latest
     networks:
       - backend-bridge

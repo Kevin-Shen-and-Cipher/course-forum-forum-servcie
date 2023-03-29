@@ -1,0 +1,7 @@
+FROM golang:1.20.2-alpine3.17
+
+# Install git.
+RUN apk update && apk add --no-cache git
+
+# Working directory
+WORKDIR /app

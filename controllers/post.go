@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"course-forum/infra/logger"
 	"course-forum/models"
 	"course-forum/repository"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,6 +17,34 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New()
+}
+
+func getCache(ctx *gin.Context, key string, data interface{}) (err error) {
+	var val string
+
+	//get data form redis
+	if val, err = repository.RedisGet(ctx, key); err != nil {
+		return
+	}
+
+	//convert json to struct
+	if err = json.Unmarshal([]byte(val), &data); err != nil {
+		logger.Errorf("json convert error: %s \n", err.Error())
+		go repository.RedisDelete(ctx, key)
+	}
+
+	return
+}
+
+func setCache(ctx *gin.Context, key string, data interface{}) {
+	val, err := json.Marshal(data)
+
+	if err != nil {
+		logger.Infof("json convert error: %s \n", err.Error())
+		return
+	}
+
+	go repository.RedisSet(ctx, key, val)
 }
 
 // GetPosts godoc
@@ -28,13 +59,23 @@ func init() {
 // @Failure 500 {object} models.ErrorResponse
 // @Router /posts [get]
 func GetPosts(ctx *gin.Context) {
-	posts, err := repository.GetPosts()
+	var posts []models.Post
+	var err error
 
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	} else {
+	//get data form cache
+	if err = getCache(ctx, "posts", &posts); err == nil {
 		ctx.JSON(http.StatusOK, &posts)
+		return
 	}
+
+	//get data form database
+	if posts, err = repository.GetPosts(); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &posts)
+	go setCache(ctx, "posts", &posts)
 }
 
 // CreatePost godoc
@@ -68,13 +109,13 @@ func CreatePost(ctx *gin.Context) {
 
 	post := models.Post{Title: input.Title, Content: input.Content, Score: input.Score, CreateBy: input.CreateBy, Tags: tags}
 
-	err = repository.CreatePost(&post)
-
-	if err != nil {
+	if err = repository.CreatePost(&post); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	} else {
-		ctx.JSON(http.StatusCreated, &post)
+		return
 	}
+
+	ctx.JSON(http.StatusCreated, &post)
+	go repository.RedisDelete(ctx, "posts")
 }
 
 // FindPost godoc
@@ -98,13 +139,23 @@ func FindPost(ctx *gin.Context) {
 		return
 	}
 
-	post, err := repository.FindPost(id)
+	var post *models.Post
+	var key string = fmt.Sprintf("posts/%v", id)
 
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
-	} else {
+	//get data form cache
+	if err = getCache(ctx, key, &post); err == nil {
 		ctx.JSON(http.StatusOK, &post)
+		return
 	}
+
+	//get data form database
+	if post, err = repository.FindPost(id); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &post)
+	go setCache(ctx, key, &post)
 }
 
 // UpdatePost godoc
@@ -130,22 +181,23 @@ func UpdatePost(ctx *gin.Context) {
 	}
 
 	var input models.UpdatePost
-
 	_ = ctx.ShouldBindJSON(&input)
 
-	if err := validate.Struct(&input); err != nil {
+	if err = validate.Struct(&input); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	post := models.Post{ID: id, State: *input.State}
-	err = repository.UpdatePost(&post)
 
-	if err != nil {
+	if err = repository.UpdatePost(&post); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
-	} else {
-		ctx.JSON(http.StatusOK, &post)
+		return
 	}
+
+	ctx.JSON(http.StatusOK, &post)
+	go repository.RedisDelete(ctx, "posts")
+	go repository.RedisDelete(ctx, fmt.Sprintf("posts/%v", id))
 }
 
 // DeletePost godoc
@@ -170,13 +222,15 @@ func DeletePost(ctx *gin.Context) {
 	}
 
 	post := models.Post{ID: id}
-	err = repository.DeletePost(&post)
 
-	if err != nil {
+	if err = repository.DeletePost(&post); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
-	} else {
-		ctx.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	ctx.JSON(http.StatusNoContent, gin.H{})
+	go repository.RedisDelete(ctx, "posts")
+	go repository.RedisDelete(ctx, fmt.Sprintf("posts/%v", id))
 }
 
 func getPostId(ctx *gin.Context) (uint, error) {

@@ -9,6 +9,7 @@ import (
 type Configuration struct {
 	Server   ServerConfiguration
 	Database DatabaseConfiguration
+	Redis    RedisConfiguration
 }
 
 // SetupConfig configuration

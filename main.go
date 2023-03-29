@@ -4,6 +4,7 @@ import (
 	"course-forum/config"
 	"course-forum/infra/database"
 	"course-forum/infra/logger"
+	"course-forum/infra/redis"
 	"course-forum/migrations"
 	"course-forum/routers"
 	"time"
@@ -33,6 +34,13 @@ func main() {
 	if err := database.DbConnection(dbDSN); err != nil {
 		logger.Fatalf("database DbConnection error: %s", err)
 	}
+
+	options := config.RdbConfiguration()
+
+	if err := redis.RdbConnection(options); err != nil {
+		logger.Fatalf("redis RdbConnection error: %s", err)
+	}
+
 	//later separate migration
 	migrations.Migrate()
 

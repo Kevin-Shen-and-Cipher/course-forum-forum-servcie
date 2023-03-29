@@ -3,6 +3,7 @@ package controllers
 import (
 	"course-forum/models"
 	"course-forum/repository"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -26,13 +27,23 @@ func init() {
 // @Failure 500 {object} models.ErrorResponse
 // @Router /tags [get]
 func GetTags(ctx *gin.Context) {
-	tags, err := repository.GetTags()
+	var tags []models.Tag
+	var err error
 
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	} else {
+	//get data form cache
+	if err = getCache(ctx, "tags", &tags); err == nil {
 		ctx.JSON(http.StatusOK, &tags)
+		return
 	}
+
+	//get data form database
+	if tags, err = repository.GetTags(); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &tags)
+	go setCache(ctx, "tags", &tags)
 }
 
 // CreateTag godoc
@@ -58,14 +69,14 @@ func CreateTag(ctx *gin.Context) {
 	}
 
 	tag := models.Tag{Name: input.Name}
-
 	err := repository.CreateTag(&tag)
-
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	} else {
-		ctx.JSON(http.StatusCreated, &tag)
+		return
 	}
+
+	ctx.JSON(http.StatusCreated, &tag)
+	go repository.RedisDelete(ctx, "tags")
 }
 
 // FindTag godoc
@@ -89,13 +100,23 @@ func FindTag(ctx *gin.Context) {
 		return
 	}
 
-	tag, err := repository.FindTag(id)
+	var tag *models.Tag
+	var key string = fmt.Sprintf("tags/%v", id)
 
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
-	} else {
+	//get data form cache
+	if err = getCache(ctx, key, &tag); err == nil {
 		ctx.JSON(http.StatusOK, &tag)
+		return
 	}
+
+	//get data form database
+	if tag, err = repository.FindTag(id); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &tag)
+	go setCache(ctx, key, &tag)
 }
 
 // UpdateTag godoc
@@ -121,7 +142,6 @@ func UpdateTag(ctx *gin.Context) {
 	}
 
 	var input models.UpdateTag
-
 	_ = ctx.ShouldBindJSON(&input)
 
 	if err := validate.Struct(&input); err != nil {
@@ -130,13 +150,15 @@ func UpdateTag(ctx *gin.Context) {
 	}
 
 	tag := models.Tag{ID: id, Name: input.Name}
-	err = repository.UpdateTag(&tag)
 
-	if err != nil {
+	if err = repository.UpdateTag(&tag); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
-	} else {
-		ctx.JSON(http.StatusOK, &tag)
+		return
 	}
+
+	ctx.JSON(http.StatusOK, &tag)
+	go repository.RedisDelete(ctx, "tags")
+	go repository.RedisDelete(ctx, fmt.Sprintf("tags/%v", id))
 }
 
 // DeleteTag godoc
@@ -161,13 +183,15 @@ func DeleteTag(ctx *gin.Context) {
 	}
 
 	tag := models.Tag{ID: id}
-	err = repository.DeleteTag(&tag)
 
-	if err != nil {
+	if err = repository.DeleteTag(&tag); err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "tag not found"})
-	} else {
-		ctx.JSON(http.StatusNoContent, gin.H{})
+		return
 	}
+
+	ctx.JSON(http.StatusNoContent, gin.H{})
+	go repository.RedisDelete(ctx, "tags")
+	go repository.RedisDelete(ctx, fmt.Sprintf("tags/%v", id))
 }
 
 func getTagId(ctx *gin.Context) (uint, error) {

@@ -23,4 +23,6 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
-        script: docker-compose up -d 
+        script: |
+            cd /var/www/course-forum-forum-service
+            docker-compose restart

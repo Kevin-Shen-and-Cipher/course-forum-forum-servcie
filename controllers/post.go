@@ -107,7 +107,7 @@ func CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	post := models.Post{Title: input.Title, Content: input.Content, Score: input.Score, CreateBy: input.CreateBy, Tags: tags}
+	post := models.Post{Title: input.Title, Content: input.Content, Score: input.Score, SentimentScore: input.SentimentScore ,CreateBy: input.CreateBy, Tags: tags}
 
 	if err = repository.CreatePost(&post); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

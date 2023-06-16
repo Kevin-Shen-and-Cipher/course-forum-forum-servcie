@@ -5,24 +5,26 @@ import (
 )
 
 type Post struct {
-	ID        uint      `json:"id" gorm:"primaryKey;auto_increment"`
-	Title     string    `json:"title" gorm:"type:text;not null"`
-	Content   string    `json:"content" gorm:"type:text;not null"`
-	Score     uint8     `json:"score" gorm:"not null"`
-	Views     uint      `json:"views" gorm:"default:0;not null"`
-	State     bool      `json:"state" gorm:"default:false;not null"`
-	CreateBy  string    `json:"create_by" gorm:"type:text;not null"`
-	CreatedAt time.Time `json:"created_at" gorm:"type:time;autoCreateTime;not null"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"type:time;autoUpdateTime;not null"`
-	Tags      []Tag     `json:"tags" gorm:"many2many:post_tags;constraint:OnDelete:CASCADE"`
+	ID             uint      `json:"id" gorm:"primaryKey;auto_increment"`
+	Title          string    `json:"title" gorm:"type:text;not null"`
+	Content        string    `json:"content" gorm:"type:text;not null"`
+	Score          uint8     `json:"score" gorm:"not null"`
+	SentimentScore float32   `json:"sentiment_score" gorm:"not null"`
+	Views          uint      `json:"views" gorm:"default:0;not null"`
+	State          bool      `json:"state" gorm:"default:false;not null"`
+	CreateBy       string    `json:"create_by" gorm:"type:text;not null"`
+	CreatedAt      time.Time `json:"created_at" gorm:"type:time;autoCreateTime;not null"`
+	UpdatedAt      time.Time `json:"updated_at" gorm:"type:time;autoUpdateTime;not null"`
+	Tags           []Tag     `json:"tags" gorm:"many2many:post_tags;constraint:OnDelete:CASCADE"`
 }
 
 type CreatePost struct {
-	Title    string `json:"title" validate:"required,max=256"`
-	Content  string `json:"content" validate:"required"`
-	Score    uint8  `json:"score" validate:"required,gte=0,lte=5"`
-	CreateBy string `json:"create_by" validate:"required,max=20"`
-	Tags     []uint `json:"tags"`
+	Title          string  `json:"title" validate:"required,max=256"`
+	Content        string  `json:"content" validate:"required"`
+	Score          uint8   `json:"score" validate:"required,gte=0,lte=5"`
+	SentimentScore float32 `json:"sentiment_score" validate:"required,gte=0,lte=1"`
+	CreateBy       string  `json:"create_by" validate:"required,max=20"`
+	Tags           []uint  `json:"tags"`
 }
 
 type UpdatePost struct {

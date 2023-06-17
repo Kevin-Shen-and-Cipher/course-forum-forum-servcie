@@ -100,7 +100,11 @@ func CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	tags, err := repository.GetTags(input.Tags)
+	var tags []models.Tag = []models.Tag{}
+	var err error
+	if len(input.Tags) != 0 {
+		tags, err = repository.GetTags(input.Tags)
+	}
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

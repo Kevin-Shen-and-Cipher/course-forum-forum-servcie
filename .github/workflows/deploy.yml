@@ -25,5 +25,5 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
             cd /var/www/course-forum-forum-servcie
-            sudo -u www-data git pull --ff-only
-            sudo -u www-data docker-compose restart
+            git pull
+            docker-compose restart
